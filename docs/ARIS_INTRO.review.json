@@ -1,0 +1,41 @@
+{
+  "skill": "render-html",
+  "source": "docs/ARIS_INTRO.md",
+  "source_sha256": "6684ab2eb8c39733e5a7772896e90b1b8144b8818242044bfa285dc29332708a",
+  "output": "docs/ARIS_INTRO.html",
+  "reviewer": "codex gpt-5.5 xhigh",
+  "reviewer_thread_id_run1": "019e3bfe-69de-7de1-8d64-7c70e3d19013",
+  "reviewer_thread_id_run2": "019e3c03-32ac-78a0-b3a0-969db86e009e",
+  "verdict": "PASS",
+  "checks": {
+    "source_hash_match": "pass",
+    "information_fidelity": "pass",
+    "structure": "pass",
+    "math_code_tables": "pass",
+    "callouts": "pass",
+    "safety_escaping": "pass",
+    "placeholder_leak": "pass",
+    "link_targets_absolute": "pass",
+    "details_inner_markdown_rendered": "pass"
+  },
+  "blocking_issues": [],
+  "warnings": [],
+  "history": [
+    {
+      "run": 1,
+      "verdict": "WARN",
+      "thread_id": "019e3bfe-69de-7de1-8d64-7c70e3d19013",
+      "issue": "<details><summary>Key safety features</summary> block emitted with literal markdown bullets (- 🔒, **MAX_ROUNDS**, etc.) instead of <ul><li> with <strong>/<code>",
+      "fix": "Added _render_html_block() helper in render_html.py: <details> blocks now recursively parse inner content (after </summary>, before </details>) as Markdown. Matches GitHub-flavored convention."
+    },
+    {
+      "run": 2,
+      "verdict": "PASS",
+      "thread_id": "019e3c03-32ac-78a0-b3a0-969db86e009e",
+      "issue": null,
+      "fix": null
+    }
+  ],
+  "summary": "Two-round review: WARN (details inner markdown not parsed) → fix renderer → PASS. All 9 checks pass on run 2.",
+  "rendered_at": "2026-05-19"
+}
