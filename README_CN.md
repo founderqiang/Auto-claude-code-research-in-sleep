@@ -1416,127 +1416,17 @@ cp -r skills/experiment-bridge ~/.claude/skills/
 
 <a id="gpu-server-setup"></a>
 
-<details>
-<summary><h3>🖥️ GPU 服务器配置（自动跑实验用）</h3></summary>
+### 🖥️ 自动跑实验的 GPU(可选)
 
-当 GPT-5.5 审稿说"需要补一个消融实验"或"加一个 baseline 对比"时，Claude Code 会自动写实验脚本并部署到你的 GPU 服务器。为此，Claude Code 需要知道你的服务器环境。
+审稿人说"补个消融实验"时,Claude Code 会自动写脚本并跑到你的 GPU 上 —— 你只需在 `CLAUDE.md` 里声明服务器。三种模式(**远程 SSH** · **本地 GPU** · **Vast.ai 按需**):配置片段 + 教程见 **[docs/GPU_SETUP_CN.md](docs/GPU_SETUP_CN.md)**(Vast.ai 详解 → **[VAST_GPU_GUIDE](docs/integrations/VAST_GPU_GUIDE_CN.md)**)。没 GPU?Review / 改写照常,跑实验的修复会标记"需人工跟进"。
 
-在项目的 `CLAUDE.md` 中添加服务器信息：
+### 🔌 集成(可选)
 
-```markdown
-## 远程服务器
+把文献库 / 笔记库 / 通知接进 ARIS —— 没配置就静默跳过:
 
-- SSH：`ssh my-gpu-server`（密钥免密登录）
-- GPU：4x A100
-- Conda 环境：`research`（Python 3.10 + PyTorch）
-- 激活：`eval "$(/opt/conda/bin/conda shell.bash hook)" && conda activate research`
-- 代码目录：`/home/user/experiments/`
-- 后台运行用 `screen`：`screen -dmS exp0 bash -c '...'`
-```
-
-Claude Code 读到这些就知道怎么 SSH、激活环境、启动实验。GPT-5.5（审稿人）只决定**做什么实验**——Claude Code 根据你的 `CLAUDE.md` 搞定**怎么跑**。
-
-如果你已经在 GPU 服务器上，可以添加以下到你的 `CLAUDE.md`：
-```markdown
-## GPU 环境
-
-- 这台机器有直接 GPU 访问（不需要 SSH）
-- GPU：4x A100 80GB
-- 实验环境：`YOUR_CONDA_ENV`（Python 3.x + PyTorch）
-- 激活前任何 Python 命令：`激活实验环境的命令`（uv, conda 等）
-- 代码目录：`/home/YOUR_USERNAME/YOUR_CODE_DIRECTORY/`
-```
-
-**没有 GPU 服务器？** Review 和改写功能不受影响，只有需要跑实验的修复会被跳过（标记为"需人工跟进"）。或者按需租 GPU 跑实验，见下方 Vast.ai 集成。
-
-</details>
-
-<details>
-<summary><b>☁️ Vast.ai 按需 GPU（可选）</b></summary>
-
-没 GPU？从 [Vast.ai](https://vast.ai) 按需租。ARIS 分析你的训练任务（模型大小、数据集、时间），找能放下的最便宜 GPU，按**总成本**（不是 $/hr）排序展示，然后租 → 跑 → 收 → 销毁全自动。
-
-在项目 `CLAUDE.md` 加：
-
-```markdown
-## Vast.ai
-- gpu: vast                  # 从 vast.ai 按需租 GPU
-- auto_destroy: true         # 实验跑完自动销毁（默认）
-- max_budget: 5.00           # 可选：估算超过这个数会警告
-```
-
-**📖 完整配置指南 → [docs/integrations/VAST_GPU_GUIDE_CN.md](docs/integrations/VAST_GPU_GUIDE_CN.md)** 包含：
-- 账号 + `vastai` CLI + API key + SSH key 准备工作（5 个步骤）
-- ARIS 如何挑 GPU 并展示实时成本排序表
-- 手动租用：`/vast-gpu`（list / rent / destroy）
-- 典型花费区间（RTX 4090 消融 ~$0.30-2/次，A100/H100 baseline ~$2-10/次）
-- 什么时候用 `gpu: vast` 比 `gpu: remote` / `gpu: local` 更划算
-
-**也不想租？** Review 和改写类 skill 仍可用，只有需要跑实验的修复会被跳过（标记为"需人工跟进"）。
-
-</details>
-
-<details>
-<summary><b>📚 Zotero 集成（可选）</b></summary>
-
-把 Zotero 文献库接到 `/research-lit` —— 搜索 collections、读标注/高亮、导出 BibTeX，全在联网搜索**之前**完成。推荐 MCP：[zotero-mcp](https://github.com/54yyyu/zotero-mcp)（1.8k⭐，语义搜索 + PDF 标注 + BibTeX 导出）。
-
-**📖 完整配置指南 → [docs/integrations/ZOTERO_CN.md](docs/integrations/ZOTERO_CN.md)** 包含：
-- `zotero-mcp` 安装（本地 API 适合桌面端，或 Web API）
-- API key + user ID 配置
-- 启用后 `/research-lit` 新增能力（语义搜索、collections、PDF 标注、BibTeX 导出）
-- 配置后新的默认源顺序：Zotero → Obsidian → 本地 PDF → 网络
-- Zotero + Obsidian 组合工作流
-
-**不用 Zotero？** `/research-lit` 自动跳过，用本地 PDF + 网络搜索。
-
-</details>
-
-<details>
-<summary><b>📓 Obsidian + arXiv 集成（可选）</b></summary>
-
-把 Obsidian vault 接到 `/research-lit` —— 搜索你的笔记、带标签的引用、加工后的洞察（通常比原始论文更有价值）。推荐 MCP：[mcpvault](https://github.com/bitbonsai/mcpvault)（760⭐，不需要打开 Obsidian）。和 Zotero 天然搭配。**arXiv 内置无需配置**，`/research-lit` 会自动查 arXiv API。
-
-**📖 完整配置指南 → [docs/integrations/OBSIDIAN_CN.md](docs/integrations/OBSIDIAN_CN.md)** 包含：
-- `mcpvault` 安装（指向 vault 路径，BM25 搜索，14 个工具）
-- 可选 [obsidian-skills](https://github.com/kepano/obsidian-skills)（13.6k⭐，Obsidian CEO 维护）支持 wikilinks/callouts
-- 启用后 `/research-lit` 新增能力（vault 搜索、tag 过滤、加工后总结、wikilink 遍历）
-- Zotero + Obsidian 组合工作流
-- arXiv 默认行为 + 怎么开启 PDF 下载（`— arxiv download: true`）
-- 独立的 `/arxiv "topic"` 和 `/arxiv 2301.07041 — download`
-
-**不用 Obsidian？** `/research-lit` 自动跳过，照常工作。arXiv 不受影响。
-
-</details>
-
-<details>
-<summary><h3>📱 飞书/Lark 集成（可选）</h3></summary>
-
-实验跑完、review 出分、checkpoint 等你审批——手机收飞书通知，不用守在终端前。
-
-| 仅推送（群聊卡片） | 双向交互（私聊） |
-|:-:|:-:|
-| <img src="assets/feishu_push.png" width="450" /> | <img src="assets/feishu_interactive.jpg" width="450" /> |
-
-**三种模式，按需选择：**
-
-| 模式 | 效果 | 你需要 |
-|------|------|--------|
-| **关闭**（默认） | 什么都不做，纯 CLI 不变 | 什么都不用 |
-| **仅推送** | 关键事件发 webhook 通知，手机收推送，不能回复 | 飞书机器人 webhook URL |
-| **双向交互** | 全双工：在飞书里审批/拒绝 idea、回复 checkpoint | [feishu-claude-code](https://github.com/joewongjc/feishu-claude-code) 运行中 |
-
-**📖 完整配置指南 → [docs/integrations/FEISHU_CN.md](docs/integrations/FEISHU_CN.md)** 包含：
-- **仅推送配置（5 分钟）** —— 建群机器人、复制 webhook URL、丢 `~/.claude/feishu.json`、curl 测试
-- **双向交互配置（15 分钟）** —— 飞书开放平台建应用、5 个必开权限（含极易漏的 `im:message.p2p_msg:readonly`）、`feishu-claude-code` 桥接安装、screen 部署
-- 卡片颜色/内容对照表（Review ≥ 6 → 绿、< 6 → 橙、出错 → 红 等）
-- 哪些 skill 会发通知、每个 skill 的推送 vs 交互 payload
-- 机器人不回复的常见问题排查表
-- 其他 IM 平台（[cc-connect](https://github.com/chenhg5/cc-connect)、[clawdbot-feishu](https://github.com/m1heng/clawdbot-feishu)、[lark-openapi-mcp](https://github.com/larksuite/lark-openapi-mcp)）
-
-**不用飞书？** 没有 `~/.claude/feishu.json` 文件时，所有 skill 行为完全不变。零开销，零副作用。
-
-</details>
+- **[Zotero](docs/integrations/ZOTERO_CN.md)** —— `/research-lit` 里搜 collections + 标注 + BibTeX(联网搜索之前)。
+- **[Obsidian + arXiv](docs/integrations/OBSIDIAN_CN.md)** —— 搜你的 vault 笔记;arXiv 内置免配置。
+- **[飞书 / Lark](docs/integrations/FEISHU_CN.md)** —— 手机推送 + 双向审批,适合过夜跑。
 
 <a id="customization"></a>
 <a id="-customization"></a>
